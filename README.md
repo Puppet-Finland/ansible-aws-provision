@@ -30,6 +30,11 @@ This script works in three distinct phases, just like Vagrant:
 If any of the provioning steps fail then the new EC2 instance is automatically
 destroyed.
 
+# The AWS EC2 inventory
+
+This repository contains and AWS EC2 inventory called
+[aws_ec2.yml](aws_ec2.yml). It is not enabled ansible.cfg by default.
+
 # Prerequisites
 
 ## Software packages
