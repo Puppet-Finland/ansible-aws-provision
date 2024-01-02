@@ -79,14 +79,16 @@ keypair_name: provision
 region: eu-central-1
 
 # Subnet to use for the EC2 instance
-subnet_name: production-primary-public
+subnet_id: subnet-0123456789abcdef0
 
-# Security group to attach to the EC2 instance
-security_group_name: production-standard
+# Security groups to attach to the EC2 instance
+security_group_ids:
+  - sg-0123456789abcdef0
+  - sg-56789abcdef012345
 
 # VPC to use for the EC2 instance. Must contain the subnet as well or EC2
 # instance creation will fail.
-vpc_id: vpc-00d74e9278823eca1
+vpc_id: vpc-0123456789abcdef0
 
 # Ubuntu 22.04 x86_64
 ami_id: ami-0faab6bdbac9486fb

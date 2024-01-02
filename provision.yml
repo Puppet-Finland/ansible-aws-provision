@@ -1,38 +1,19 @@
 ---
 - name: Create an EC2 instance in AWS
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   vars_files:
     - ../ansible-aws-provision.yml
 
   tasks:
-    - name: Get security group information
-      amazon.aws.ec2_security_group_info:
-        filters:
-          vpc-id: "{{ vpc_id }}"
-          group-name: "{{ security_group_name }}"
-      register: sg
-
-    - name: Get subnet information
-      amazon.aws.ec2_vpc_subnet_info:
-        filters:
-          vpc-id: "{{ vpc_id }}"
-          "tag:Name": "{{ subnet_name }}"
-      register: subnet
-
-    - name: Store AWS information as facts
-      ansible.builtin.set_fact:
-        standard_sg_id: "{{ sg.security_groups[0].group_id }}"
-        subnet_id: "{{ subnet.subnets[0].subnet_id }}"
-
     - name: Create EC2 instance
       amazon.aws.ec2_instance:
         state: present
-        name: "test-instance"
+        name: "{{ instance_name }}-{{ ansible_user_id }}"
         key_name: "{{ keypair_name }}"
         vpc_subnet_id: "{{ subnet_id }}"
         instance_type: "{{ instance_type }}"
-        security_group: "{{ standard_sg_id }}"
+        security_groups: "{{ security_group_ids }}"
         network:
           assign_public_ip: true
         image_id: "{{ ami_id }}"
