@@ -6,10 +6,18 @@
     - ../ansible-aws-provision.yml
 
   tasks:
+    - name: Construct instance name
+      ansible.builtin.set_fact:
+        my_instance_name: "{{ instance_name }}-{{ ansible_user_id }}"
+
+    - name: Show constructed instance name
+      ansible.builtin.debug:
+        var: my_instance_name
+
     - name: Create EC2 instance
       amazon.aws.ec2_instance:
         state: present
-        name: "{{ instance_name }}-{{ ansible_user_id }}"
+        name: "{{ my_instance_name }}"
         key_name: "{{ keypair_name }}"
         vpc_subnet_id: "{{ subnet_id }}"
         instance_type: "{{ instance_type }}"
@@ -28,12 +36,12 @@
 
     - name: Add new EC2 instance to inventory
       ansible.builtin.add_host:
-        name: "{{ instance_name }}"
+        name: "{{ my_instance_name }}"
         ansible_user: "{{ login_user }}"
         ansible_ssh_host: "{{ ec2_info.instances[0].public_ip_address }}"
         ansible_ssh_private_key_file: "~/.ssh/openvpn-foss-opentofu"
 
-    -  name: Wait 300 seconds for port 22 to become open and contain "OpenSSH"
+    -  name: Wait for port 22 to become open and contain "OpenSSH"
        ansible.builtin.wait_for:
          port: 22
          host: "{{ ec2_info.instances[0].public_ip_address }}"
@@ -42,13 +50,17 @@
        connection: local
 
 - name: Provision EC2 instance
-  hosts: "{{ instance_name }}"
+  hosts: "{{ hostvars['localhost'].my_instance_name }}"
   become: true
-  gather_facts: no
+  gather_facts: yes
   vars_files:
     - ../ansible-aws-provision.yml
 
   tasks:
+    - name: Show inventory hostname
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}"
+
     - name: Attempt provisioning
       block:
         - name: Provision files
@@ -63,28 +75,29 @@
             cmd: "{{ item }}"
           loop: "{{ commands }}"
 
-      rescue:
-        - name: Warning - provisioning has failed
-          ansible.builtin.debug:
-            msg: "Warning: provisioning has failed"
+        - name: Mark provisioning as successful
+          ansible.builtin.set_fact:
+            provisioning_failed: false
 
-- name: Remove EC2 instance from AWS
+      rescue:
+        - name: Mark provisioning as failed
+          ansible.builtin.set_fact:
+            provisioning_failed: true
+
+- name: Create an EC2 instance in AWS
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   vars_files:
     - ../ansible-aws-provision.yml
 
   tasks:
-    - name: Wait 10 seconds
-      ansible.builtin.pause:
-        seconds: 10
-
     - name: Remove EC2 instance
       amazon.aws.ec2_instance:
         state: absent
         wait: false
         filters:
-          instance-id: "{{ instance_id }}"
+          instance-id: "{{ hostvars['localhost'].instance_id }}"
           instance-state-name: running
-          "tag:Name": "{{ instance_name }}"
+          "tag:Name": "{{ hostvars['localhost'].my_instance_name }}"
           "tag:Temporary": "True"
+      when: hostvars[my_instance_name].provisioning_failed == true
