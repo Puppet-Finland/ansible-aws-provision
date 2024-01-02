@@ -1,0 +1,109 @@
+---
+- name: Create an EC2 instance in AWS
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ../ansible-aws-provision.yml
+
+  tasks:
+    - name: Get security group information
+      amazon.aws.ec2_security_group_info:
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          group-name: "{{ security_group_name }}"
+      register: sg
+
+    - name: Get subnet information
+      amazon.aws.ec2_vpc_subnet_info:
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          "tag:Name": "{{ subnet_name }}"
+      register: subnet
+
+    - name: Store AWS information as facts
+      ansible.builtin.set_fact:
+        standard_sg_id: "{{ sg.security_groups[0].group_id }}"
+        subnet_id: "{{ subnet.subnets[0].subnet_id }}"
+
+    - name: Create EC2 instance
+      amazon.aws.ec2_instance:
+        state: present
+        name: "test-instance"
+        key_name: "{{ keypair_name }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        instance_type: "{{ instance_type }}"
+        security_group: "{{ standard_sg_id }}"
+        network:
+          assign_public_ip: true
+        image_id: "{{ ami_id }}"
+        tags:
+          Temporary: "True"
+          Environment: Testing
+      register: ec2_info
+
+    - name: Create EC2 instance ID fact
+      ansible.builtin.set_fact:
+        instance_id: "{{ ec2_info.instances[0].instance_id }}"
+
+    - name: Add new EC2 instance to inventory
+      ansible.builtin.add_host:
+        name: "{{ instance_name }}"
+        ansible_user: "{{ login_user }}"
+        ansible_ssh_host: "{{ ec2_info.instances[0].public_ip_address }}"
+        ansible_ssh_private_key_file: "~/.ssh/openvpn-foss-opentofu"
+
+    -  name: Wait 300 seconds for port 22 to become open and contain "OpenSSH"
+       ansible.builtin.wait_for:
+         port: 22
+         host: "{{ ec2_info.instances[0].public_ip_address }}"
+         search_regex: OpenSSH
+         delay: 10
+       connection: local
+
+- name: Provision EC2 instance
+  hosts: "{{ instance_name }}"
+  become: true
+  gather_facts: no
+  vars_files:
+    - ../ansible-aws-provision.yml
+
+  tasks:
+    - name: Attempt provisioning
+      block:
+        - name: Provision files
+          ansible.builtin.copy:
+            src: "{{ item.key }}"
+            dest: "{{ item.value }}"
+            mode: preserve
+          loop: "{{ files | dict2items }}"
+
+        - name: Run provisioning scripts
+          ansible.builtin.shell:
+            cmd: "{{ item }}"
+          loop: "{{ commands }}"
+
+      rescue:
+        - name: Warning - provisioning has failed
+          ansible.builtin.debug:
+            msg: "Warning: provisioning has failed"
+
+- name: Remove EC2 instance from AWS
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ../ansible-aws-provision.yml
+
+  tasks:
+    - name: Wait 10 seconds
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Remove EC2 instance
+      amazon.aws.ec2_instance:
+        state: absent
+        wait: false
+        filters:
+          instance-id: "{{ instance_id }}"
+          instance-state-name: running
+          "tag:Name": "{{ instance_name }}"
+          "tag:Temporary": "True"
