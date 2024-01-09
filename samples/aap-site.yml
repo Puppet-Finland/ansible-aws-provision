@@ -1,0 +1,17 @@
+# SSH keypair name as seen by AWS
+keypair_name: provision
+
+# Region to deploy the EC2 instance to
+region: eu-central-1
+
+# Subnet to use for the EC2 instance
+subnet_id: subnet-0123456789abcdef0
+
+# Security groups to attach to the EC2 instance
+security_group_ids:
+  - sg-0123456789abcdef0
+  - sg-56789abcdef012345
+
+# VPC to use for the EC2 instance. Must contain the subnet as well or EC2
+# instance creation will fail.
+vpc_id: vpc-0123456789abcdef0

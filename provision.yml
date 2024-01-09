@@ -3,7 +3,8 @@
   hosts: localhost
   gather_facts: yes
   vars_files:
-    - ../ansible-aws-provision.yml
+    - ../aap-project.yml
+    - ../aap-site.yml
 
   tasks:
     - name: Construct instance name
@@ -54,7 +55,8 @@
   become: true
   gather_facts: yes
   vars_files:
-    - ../ansible-aws-provision.yml
+    - ../aap-project.yml
+    - ../aap-site.yml
 
   tasks:
     - name: Show inventory hostname
@@ -88,7 +90,8 @@
   hosts: localhost
   gather_facts: yes
   vars_files:
-    - ../ansible-aws-provision.yml
+    - ../aap-project.yml
+    - ../aap-site.yml
 
   tasks:
     - name: Remove EC2 instance

@@ -64,77 +64,24 @@ to create and destroy AWS EC2 instances.
 
 We recommend cloning this repository as a Git submodule in your project's Git. For example:
 
-```
     cd myproject
     git submodule add https://github.com/Puppet-Finland/ansible-aws-provision.git
-```
 
-Then create a configuration file, *ansible-aws-provision.yml*, in the main project directory (not under ansible-aws-provision). Here's an example from puppet-redmine:
+Then create two configuration files in the main project directory (*not* under
+ansible-aws-provision):
 
-```
-# SSH keypair name as seen by AWS
-keypair_name: provision
+* *aap-project.yml*: variables related to your software/automation project
+* *aap-site.yml*: variables related to your AWS environment
 
-# Region to deploy the EC2 instance to
-region: eu-central-1
-
-# Subnet to use for the EC2 instance
-subnet_id: subnet-0123456789abcdef0
-
-# Security groups to attach to the EC2 instance
-security_group_ids:
-  - sg-0123456789abcdef0
-  - sg-56789abcdef012345
-
-# VPC to use for the EC2 instance. Must contain the subnet as well or EC2
-# instance creation will fail.
-vpc_id: vpc-0123456789abcdef0
-
-# Ubuntu 22.04 x86_64
-ami_id: ami-0faab6bdbac9486fb
-
-# Value of the "Name" tag for the instance. In other words, the human-readable
-# name of the EC2 instance that will be created.
-instance_name: redmine
-
-# Instance type
-instance_type: t3.medium
-
-# SSH user that has passwordless sudo privileges. Typically the default user of
-# the AMI provider.
-login_user: ubuntu
-
-# Copy these files. Note that paths are evaluated from the ansible-aws-provision
-# subdirectory, so remember to add a "..".
-#
-# Try to cherry-pick what you transfer: the playbook uses ansible.builtin.copy
-# which is very slow when transfering lots of data (e.g. .git directories).
-#
-files:
-  "../data": "/tmp/redmine"
-  "../hiera.yaml": "/tmp/redmine"
-  "../manifests": "/tmp/redmine"
-  "../templates": "/tmp/redmine"
-  "../Puppetfile": "/tmp/redmine"
-  "../vagrant": "/tmp/redmine"
-
-# Run these arbitrary provisioning commands on the EC2 instance. These 
-commands:
-  - "/tmp/redmine/vagrant/common.sh"
-  - "/opt/puppetlabs/bin/puppet apply /tmp/redmine/vagrant/redmine.pp --modulepath=/tmp/redmine/modules"
-```
-
-The next step is to enter the ansible-aws-provision directory and install the Ansible AWS
-module:
-
-    cd ansible-aws-provision
-    ansible-galaxy collection install -n -f -p collections -r collections/requirements.yml
+If you use ansible-aws-provision in a public project then you should only version *aap-project.yml*.
+There are sample configuration files under the [samples](samples) directory.
 
 # Usage
 
 Once everything is prepared you should be able to just
 
     cd ansible-aws-provision
+    ansible-galaxy collection install -n -f -p collections -r collections/requirements.yml
     ansible-playbook provision.yml
 
 If provisioning failed, you can debug using
@@ -142,4 +89,3 @@ If provisioning failed, you can debug using
     ansible-playbook -vv provision.yml
 
 If you provisioning worked fine in Vagrant, it should, in general, work fine in ansible-aws-provision.
-
