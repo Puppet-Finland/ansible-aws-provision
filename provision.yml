@@ -102,5 +102,5 @@
           instance-id: "{{ hostvars['localhost'].instance_id }}"
           instance-state-name: running
           "tag:Name": "{{ hostvars['localhost'].my_instance_name }}"
-          "tag:Temporary": "True"
+          "tag:tostop": "true"
       when: hostvars[my_instance_name].provisioning_failed == true
