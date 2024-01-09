@@ -27,7 +27,7 @@
           assign_public_ip: true
         image_id: "{{ ami_id }}"
         tags:
-          Temporary: "True"
+          tostop: true
           Environment: Testing
       register: ec2_info
 

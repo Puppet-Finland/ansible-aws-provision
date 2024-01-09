@@ -89,3 +89,49 @@ If provisioning failed, you can debug using
     ansible-playbook -vv provision.yml
 
 If you provisioning worked fine in Vagrant, it should, in general, work fine in ansible-aws-provision.
+
+# Support for automatic EC2 instance shutdown
+
+Your EC2 costs will go through the roof easily for no reason if you forget
+stuff running in there. Therefore we recommend setting up
+[EC2 instance shutdown automation](https://www.puppeteers.net/blog/stop-ec2-instances-automatically-with-terraform)
+to cut costs.
+
+This Ansible code is only concerned with spinning up temporary and disposable
+EC2 instances. It does not support shutting those instances down automatically.
+However, it does add tags that help you identify EC2 instances that need to be
+shut down, say, every night. In particular each EC2 instance gets a
+"tostop=true" tag automatically. That tag is the default tag for
+[terraform-aws-lambda-scheduler-stop-start](https://github.com/diodonfrost/terraform-aws-lambda-scheduler-stop-start),
+a Terraform/Opentofu module that sets up everything needed to shut down EC2
+instances automatically using AWS Lambda and Eventbridge. Here's a sample of
+how to use the module to shut down EC2 instances with a matching tag at 19:30
+UTC every night:
+
+```
+#
+# Automatically stop EC2 instances every night
+#
+# https://github.com/diodonfrost/terraform-aws-lambda-scheduler-stop-start
+#
+module "stop_ec2_instance" {
+  source                         = "github.com/diodonfrost/terraform-aws-lambda-scheduler-stop-start?ref=3.5.0"
+  name                           = "ec2_stop"
+  # See https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents-expressions.html
+  cloudwatch_schedule_expression = "cron(30 19 * * ? *)"
+  schedule_action                = "stop"
+  autoscaling_schedule           = "false"
+  documentdb_schedule            = "false"
+  ec2_schedule                   = "true"
+  ecs_schedule                   = "false"
+  rds_schedule                   = "false"
+  redshift_schedule              = "false"
+  cloudwatch_alarm_schedule      = "false"
+  scheduler_tag                  = {
+    key   = "tostop"
+    value = "true"
+  }
+}
+```
+
+We use this code with Opentofu 1.6.0 and it works without any issues.
