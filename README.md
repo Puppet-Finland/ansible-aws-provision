@@ -4,6 +4,9 @@ This repository is intended as a replacement for people who have historically
 relied on [Vagrant](https://www.vagrantup.com/) to test IaC code on Virtual
 machines.
 
+A single instance of ansible-aws-provision supports having multiple projects in
+the same configuration file.
+
 # Motivation
 
 There are three main reasons why creating a replacement for Vagrant became important. the first is that Vagrant is clearly in the process of dying a slow death:
@@ -70,7 +73,7 @@ We recommend cloning this repository as a Git submodule in your project's Git. F
 Then create two configuration files in the main project directory (*not* under
 ansible-aws-provision):
 
-* *aap-project.yml*: variables related to your software/automation project
+* *aap-project.yml*: variables related to your software/automation projects
 * *aap-site.yml*: variables related to your AWS environment
 
 If you use ansible-aws-provision in a public project then you should only version *aap-project.yml*.
@@ -82,11 +85,14 @@ Once everything is prepared you should be able to just
 
     cd ansible-aws-provision
     ansible-galaxy collection install -n -f -p collections -r collections/requirements.yml
-    ansible-playbook provision.yml
+    ansible-playbook -e p=myproject up.yml
+
+The value of variable *p* must refer to a dictionary key in *aap-project.yml*.
+All project settings must be defined under that key.
 
 If provisioning failed, you can debug using
 
-    ansible-playbook -vv provision.yml
+    ansible-playbook -vv -e p=myproject up.yml
 
 If you provisioning worked fine in Vagrant, it should, in general, work fine in ansible-aws-provision.
 

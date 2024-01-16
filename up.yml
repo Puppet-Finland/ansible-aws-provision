@@ -7,9 +7,30 @@
     - ../aap-site.yml
 
   tasks:
+    - name: Validate project variable p
+      block:
+        - name: Fail if no project name is defined
+          ansible.builtin.assert:
+            that:
+              - p is string
+      rescue:
+        - name: Display error message
+          ansible.builtin.fail:
+            msg: "ERROR: project must be defined with -e p=<project>"
+
+    - name: Validate that project exits in vars file
+      block:
+        - name: Construct new variable from the selected project dictionary
+          ansible.builtin.set_fact:
+            project: "{{ lookup('ansible.builtin.vars', p, errors='strict') }}"
+      rescue:
+        - name: Display error message
+          ansible.builtin.fail:
+            msg: "ERROR: project {{ p }} does not exist in variable file!"
+
     - name: Construct instance name
       ansible.builtin.set_fact:
-        my_instance_name: "{{ instance_name }}-{{ ansible_user_id }}"
+        my_instance_name: "{{ project.instance_name }}-{{ ansible_user_id }}"
 
     - name: Show constructed instance name
       ansible.builtin.debug:
@@ -21,11 +42,11 @@
         name: "{{ my_instance_name }}"
         key_name: "{{ keypair_name }}"
         vpc_subnet_id: "{{ subnet_id }}"
-        instance_type: "{{ instance_type }}"
+        instance_type: "{{ project.instance_type }}"
         security_groups: "{{ security_group_ids }}"
         network:
           assign_public_ip: true
-        image_id: "{{ ami_id }}"
+        image_id: "{{ project.ami_id }}"
         tags:
           tostop: true
           Environment: Testing
@@ -38,7 +59,7 @@
     - name: Add new EC2 instance to inventory
       ansible.builtin.add_host:
         name: "{{ my_instance_name }}"
-        ansible_user: "{{ login_user }}"
+        ansible_user: "{{ project.login_user }}"
         ansible_ssh_host: "{{ ec2_info.instances[0].public_ip_address }}"
         ansible_ssh_private_key_file: "~/.ssh/openvpn-foss-opentofu"
 
@@ -63,6 +84,10 @@
       ansible.builtin.debug:
         msg: "{{ inventory_hostname }}"
 
+    - name: Construct new variable from the selected project dictionary
+      ansible.builtin.set_fact:
+        project: "{{ lookup('ansible.builtin.vars', p, errors='strict') }}"
+
     - name: Attempt provisioning
       block:
         - name: Provision files
@@ -70,12 +95,12 @@
             src: "{{ item.key }}"
             dest: "{{ item.value }}"
             mode: preserve
-          loop: "{{ files | dict2items }}"
+          loop: "{{ project.files | dict2items }}"
 
         - name: Run provisioning scripts
           ansible.builtin.shell:
             cmd: "{{ item }}"
-          loop: "{{ commands }}"
+          loop: "{{ project.commands }}"
 
         - name: Mark provisioning as successful
           ansible.builtin.set_fact:
