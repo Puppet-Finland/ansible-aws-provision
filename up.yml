@@ -28,6 +28,20 @@
           ansible.builtin.fail:
             msg: "ERROR: project {{ p }} does not exist in variable file!"
 
+    - name: Validate variable file contents
+      ansible.builtin.assert:
+        that:
+          - region is string
+          - subnet_id is string
+          - security_group_ids is not string and security_group_ids is not mapping and security_group_ids is iterable
+          - vpc_id is string
+          - project.ami_id is string
+          - project.instance_name is string
+          - project.instance_type is string
+          - project.login_user is string
+          - project.commands is not string and project.commands is not mapping and project.commands is iterable
+          - project.files is not string and project.files is iterable and project.files is mapping
+
     - name: Construct instance name
       ansible.builtin.set_fact:
         my_instance_name: "{{ project.instance_name }}-{{ ansible_user_id }}"
