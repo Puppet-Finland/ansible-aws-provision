@@ -36,6 +36,7 @@
           - security_group_ids is not string and security_group_ids is not mapping and security_group_ids is iterable
           - vpc_id is string
           - project.ami_id is string
+          - project.distro is string
           - project.instance_name is string
           - project.instance_type is string
           - project.login_user is string
@@ -64,6 +65,7 @@
         tags:
           tostop: true
           Environment: Testing
+          Distro: "{{ project.distro }}"
       register: ec2_info
 
     - name: Create EC2 instance ID fact

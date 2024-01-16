@@ -4,6 +4,12 @@ redmine:
   # Ubuntu 22.04 x86_64
   ami_id: ami-0faab6bdbac9486fb
 
+  # Value for the "Distro" tag. For example "Rocky" or "Ubuntu". The main
+  # purpose of this variable is to allow creating keyed AWS EC2 inventory
+  # groups which can then have group_vars that set ansible_user variable based
+  # on the distro.
+  distro: Ubuntu
+
   # Value of the "Name" tag for the instance. In other words, the human-readable
   # name of the EC2 instance that will be created.
   instance_name: redmine
