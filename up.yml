@@ -75,7 +75,7 @@
         name: "{{ my_instance_name }}"
         ansible_user: "{{ project.login_user }}"
         ansible_ssh_host: "{{ ec2_info.instances[0].public_ip_address }}"
-        ansible_ssh_private_key_file: "~/.ssh/openvpn-foss-opentofu"
+        ansible_ssh_private_key_file: "{{ ssh_private_key_file }}"
 
     -  name: Wait for port 22 to become open and contain "OpenSSH"
        ansible.builtin.wait_for:
