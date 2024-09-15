@@ -127,7 +127,7 @@
           ansible.builtin.set_fact:
             provisioning_failed: true
 
-- name: Create an EC2 instance in AWS
+- name: Remove an EC2 instance in AWS
   hosts: localhost
   gather_facts: yes
   vars_files:
