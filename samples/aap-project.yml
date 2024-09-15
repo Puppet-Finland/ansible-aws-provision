@@ -27,6 +27,7 @@ redmine:
   # Try to cherry-pick what you transfer: the playbook uses ansible.builtin.copy
   # which is very slow when transfering lots of data (e.g. .git directories).
   #
+  # Comment out to not provision any files.
   files:
     "../data": "/tmp/redmine"
     "../hiera.yaml": "/tmp/redmine"
@@ -36,6 +37,8 @@ redmine:
     "../vagrant": "/tmp/redmine"
 
   # Run these arbitrary provisioning commands on the EC2 instance.
+  #
+  # Comment out to not run any provisioning commands.
   commands:
     - "/tmp/redmine/vagrant/common.sh"
     - "/opt/puppetlabs/bin/puppet apply /tmp/redmine/vagrant/redmine.pp --modulepath=/tmp/redmine/modules"
