@@ -76,6 +76,7 @@
           tostop: true
           Environment: Testing
           Distro: "{{ project.distro }}"
+          Role: "{{ p }}"
       register: ec2_info
 
     - name: Create EC2 instance ID fact
@@ -94,7 +95,7 @@
          port: 22
          host: "{{ ec2_info.instances[0].public_ip_address }}"
          search_regex: OpenSSH
-         delay: 15
+         delay: 20
        connection: local
 
 - name: Provision EC2 instance

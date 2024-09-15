@@ -36,7 +36,21 @@ destroyed.
 # The AWS EC2 inventory
 
 This repository contains and AWS EC2 inventory called
-[aws_ec2.yml](aws_ec2.yml). It is not enabled ansible.cfg by default.
+[aws_ec2.yml](aws_ec2.yml). It is enabled by ansible.cfg by default, so make
+sure its contents match what you'd expect.
+
+You can copy the inventory file to your project directory to (re)configure the
+nodes launched with up.yml using your own playbooks. The inventory generates a
+"keyed group" based on the project name in aap-project.yml:
+
+    * role_<project-name>
+
+For example:
+
+    * role_redmine
+
+You can use this auto-generated group as a target for your playbooks and for
+creating group_vars.
 
 # Prerequisites
 
