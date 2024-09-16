@@ -95,8 +95,12 @@
          port: 22
          host: "{{ ec2_info.instances[0].public_ip_address }}"
          search_regex: OpenSSH
-         delay: 20
+         delay: 10
        connection: local
+
+    - name: Stop playbook for a while before attempting to login with SSH
+      ansible.builtin.pause:
+        seconds: 10
 
 - name: Provision EC2 instance
   hosts: "{{ hostvars['localhost'].my_instance_name }}"
