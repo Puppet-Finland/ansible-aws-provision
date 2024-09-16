@@ -6,5 +6,7 @@ regions:
 keyed_groups:
   - key: placement.region
     prefix: aws_region
-  - key: tags['Role']
+  - key: tags['role']
     prefix: "role"
+  - key: tags['distro']
+    prefix: "distro"

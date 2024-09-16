@@ -74,9 +74,9 @@
         image_id: "{{ project.ami_id }}"
         tags:
           tostop: true
-          Environment: Testing
-          Distro: "{{ project.distro }}"
-          Role: "{{ p }}"
+          environment: testing
+          distro: "{{ project.distro }}"
+          role: "{{ p }}"
       register: ec2_info
 
     - name: Create EC2 instance ID fact
