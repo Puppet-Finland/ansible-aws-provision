@@ -33,25 +33,6 @@ This script works in three distinct phases, just like Vagrant:
 If any of the provioning steps fail then the new EC2 instance is automatically
 destroyed.
 
-# The AWS EC2 inventory
-
-This repository contains and AWS EC2 inventory called
-[aws_ec2.yml](aws_ec2.yml). It is enabled by ansible.cfg by default, so make
-sure its contents match what you'd expect.
-
-You can copy the inventory file to your project directory to (re)configure the
-nodes launched with up.yml using your own playbooks. The inventory generates a
-"keyed group" based on the project name in aap-project.yml:
-
-    * role_<project-name>
-
-For example:
-
-    * role_redmine
-
-You can use this auto-generated group as a target for your playbooks and for
-creating group_vars.
-
 # Prerequisites
 
 ## Software packages
@@ -69,7 +50,6 @@ On other systems you can use pip:
 You need to have the following environment variables set:
 
 ```
-AWS_DEFAULT_REGION=<region>
 AWS_SECRET_ACCESS_KEY=<secret-access-key>
 AWS_ACCESS_KEY_ID=<access-key-id>
 ```
@@ -98,7 +78,7 @@ There are sample configuration files under the [samples](samples) directory.
 Once everything is prepared you should be able to just
 
     cd ansible-aws-provision
-    ansible-galaxy collection install -n -f -p collections -r collections/requirements.yml
+    ansible-galaxy install -n -f -r requirements.yml
     ansible-playbook -e p=myproject up.yml
 
 The value of variable *p* must refer to a dictionary key in *aap-project.yml*.
@@ -109,6 +89,43 @@ If provisioning failed, you can debug using
     ansible-playbook -vv -e p=myproject up.yml
 
 If you provisioning worked fine in Vagrant, it should, in general, work fine in ansible-aws-provision.
+
+# The AWS EC2 inventory
+
+This repository contains and AWS EC2 inventory called
+[aws_ec2.yml](aws_ec2.yml). It is enabled by ansible.cfg by default, so make
+sure its contents match what you'd expect.
+
+The inventory generates a
+"keyed group" based on the project name in aap-project.yml:
+
+    * role_<project-name>
+
+For example:
+
+    * role_redmine
+
+# Post-provisioning configuration with Ansible
+
+You can use Ansible to configure the nodes you've configured with
+ansible-aws-provision. The typical workflow is this:
+
+```
+cp requirements.yml ..
+cp ansible.cfg ..
+cp aws_ec2.yml ..
+cd ..
+ansible-galaxy install -n -f -r requirements.yml
+```
+
+Now you should be able to do
+
+    ansible-inventory show --list
+
+and see the EC2 instances you have provisioned with ansible-aws-provision.
+
+As described above, you can use the "keyed groups" to configure you nodes as
+you wish. For example, you could target all hosts in the group *role_redmine*.
 
 # Support for automatic EC2 instance shutdown
 
