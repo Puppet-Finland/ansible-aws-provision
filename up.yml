@@ -79,9 +79,11 @@
           role: "{{ p }}"
       register: ec2_info
 
-    - name: Create EC2 instance ID fact
+    - name: Create EC2 instance ID, name and public IP facts
       ansible.builtin.set_fact:
         instance_id: "{{ ec2_info.instances[0].instance_id }}"
+        my_instance_name: "{{ my_instance_name }}"
+        my_instance_public_ip: "{{ ec2_info.instances[0].public_ip_address }}"
 
     - name: Add new EC2 instance to inventory
       ansible.builtin.add_host:
@@ -138,6 +140,14 @@
         - name: Mark provisioning as successful
           ansible.builtin.set_fact:
             provisioning_failed: false
+
+        - name: Output public IP address
+          ansible.builtin.debug:
+            msg: "{{ hostvars['localhost'].my_instance_public_ip }}"
+
+        - name: Output EC2 instance_id
+          ansible.builtin.debug:
+            msg: "{{ hostvars['localhost'].instance_id }}"
 
       rescue:
         - name: Mark provisioning as failed
